@@ -92,15 +92,14 @@ Plugins nativos: `@capacitor/local-notifications` (avisos) e `@capacitor-communi
 
 ### Pelo GitHub (sem instalar nada)
 
-- A cada envio para `main`, o fluxo **Compilar APK** gera o APK e o guarda em *Actions → Artifacts*.
-- Para publicar uma versão na página de Releases, crie uma tag que comece com `v`:
+A cada envio para `main`, o fluxo **Compilar APK** compila o app e publica uma nova Release em [Releases](https://github.com/Rafajames/seu-assistente/releases), com o arquivo `seu-assistente.apk` e versão automática (`v1.0.N`). O APK também fica em *Actions → Artifacts*.
 
-  ```bash
-  git tag v1.1.0
-  git push origin v1.1.0
-  ```
+Para dar um número de versão à sua escolha, crie uma tag que comece com `v`. O fluxo usa o número da tag como versão do app:
 
-  O fluxo compila, usa o número da tag como versão do app e cria a Release com o arquivo `seu-assistente.apk`.
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
 
 ### No seu computador
 

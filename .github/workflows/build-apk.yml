@@ -31,8 +31,9 @@ jobs:
       - name: Definir versão
         id: ver
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="0.0.${{ github.run_number }}-dev"; fi
-          echo "name=$V" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then TAG="$GITHUB_REF_NAME"; else TAG="v1.0.${{ github.run_number }}"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
 
       - name: Instalar dependências
         run: npm ci
@@ -57,10 +58,14 @@ jobs:
           if-no-files-found: error
 
       - name: Publicar na página de Releases
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.ver.outputs.tag }}
         run: |
-          gh release create "$GITHUB_REF_NAME" seu-assistente.apk \
-            --title "Seu Assistente $GITHUB_REF_NAME" \
-            --notes "APK de teste para Android. Baixe o arquivo **seu-assistente.apk**, abra no celular e permita a instalação de fontes desconhecidas. Veja o README para o primeiro uso."
+          NOTES="APK de teste para Android. Baixe o arquivo **seu-assistente.apk**, abra no celular e permita a instalação de fontes desconhecidas. Veja o README para o primeiro uso."
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" seu-assistente.apk --clobber
+          else
+            gh release create "$TAG" seu-assistente.apk --target "$GITHUB_SHA" --title "Seu Assistente $TAG" --notes "$NOTES" --latest
+          fi
