@@ -3,7 +3,11 @@ name: Compilar APK
 on:
   push:
     branches: [main, master]
+    tags: ["v*"]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   apk:
@@ -24,6 +28,12 @@ jobs:
       - name: Aceitar licenças do Android SDK (já instalado no runner)
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
+      - name: Definir versão
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF_NAME#v}"; else V="0.0.${{ github.run_number }}-dev"; fi
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+
       - name: Instalar dependências
         run: npm ci
 
@@ -34,11 +44,23 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon -PversionCode=${{ github.run_number }} -PversionName=${{ steps.ver.outputs.name }}
 
-      - name: Publicar APK
+      - name: Nomear APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk seu-assistente.apk
+
+      - name: Guardar APK como artefato
         uses: actions/upload-artifact@v4
         with:
           name: seu-assistente-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: seu-assistente.apk
           if-no-files-found: error
+
+      - name: Publicar na página de Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" seu-assistente.apk \
+            --title "Seu Assistente $GITHUB_REF_NAME" \
+            --notes "APK de teste para Android. Baixe o arquivo **seu-assistente.apk**, abra no celular e permita a instalação de fontes desconhecidas. Veja o README para o primeiro uso."
