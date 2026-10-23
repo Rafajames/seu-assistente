@@ -11,6 +11,11 @@ O app é leve de propósito: só texto e voz, sem anexos, e os dados ficam no se
   <img src="docs/foco.png" width="23%" alt="Tela Foco para escolher a tarefa">
 </p>
 
+<p align="center">
+  <img src="docs/semana.png" width="23%" alt="Aba Semana com os próximos 7 dias">
+  <img src="docs/inicio-escuro.png" width="23%" alt="Tela Início no tema escuro">
+</p>
+
 ## Baixar e instalar
 
 1. Abra a página de [**Releases**](https://github.com/Rafajames/seu-assistente/releases/latest) no celular e baixe o arquivo **seu-assistente.apk**.
