@@ -233,6 +233,10 @@ input[type=range]{accent-color:var(--accent);height:34px}
 .bars i{display:block;width:100%;border-radius:8px 8px 4px 4px;background:var(--grad)}.bars i.z{background:var(--line)}
 .bars b{font-size:.8rem;color:var(--fg);height:1em;line-height:1}
 nav.bottom .in{grid-template-columns:repeat(4,1fr)!important}
+
+.foot{margin:28px 0 8px;text-align:center;font-size:.78rem;color:var(--muted)}
+.foot a{color:var(--accent);font-weight:600;text-decoration:none}
+.btn.link{display:inline-grid;place-items:center;text-decoration:none;color:var(--fg)}
 </style>
 </head>
 <body>
@@ -262,6 +266,7 @@ nav.bottom .in{grid-template-columns:repeat(4,1fr)!important}
   </div>
 
   <main id="view" aria-live="polite"></main>
+  <footer class="foot">Seu Assistente · desenvolvido por <a href="https://github.com/Rafajames" target="_blank" rel="noopener">Jamerson Rafael</a></footer>
 </div>
 
 <nav class="bottom" aria-label="Principal"><div class="in">
@@ -329,7 +334,7 @@ function adopt(remote){
   applyPrefs();render();}
 
 /* ---------- nuvem: login e armazenamento escolhidos pelo usuário ---------- */
-/* Preencha os identificadores abaixo (veja o LEIA-ME). Deixe "" para ocultar o provedor. */
+/* Preencha os identificadores abaixo (veja o README). Deixe "" para ocultar o provedor. */
 const CFG={google:{clientId:""},dropbox:{appKey:""},microsoft:{clientId:""}};
 const PROV={google:"Google Drive",dropbox:"Dropbox",microsoft:"OneDrive"};
 const REDIR=location.origin+location.pathname;
@@ -925,13 +930,15 @@ function openSettings(){
    <div class="fld"><span class="l">Metas e compartilhamento</span><label class="hint" for="s-goal" style="margin:0">Meta diária de tarefas concluídas</label><input id="s-goal" type="number" min="1" max="50" value="${s.dailyGoal||3}">
      <label class="sw"><input type="checkbox" id="s-share" ${s.shareOn!==false?"checked":""}>Oferecer compartilhar no WhatsApp ao concluir</label></div>
    <div class="fld"><span class="l">Notificações do sistema</span><div class="row"><span class="pill plain">${esc(perm)}</span><button class="btn" id="s-notif">Ativar</button></div>
-    <p class="hint">Os avisos funcionam com o app aberto. No iPhone, instale o app na tela inicial antes de ativar. Com o app totalmente fechado, é preciso um servidor de push (veja o LEIA-ME).</p></div>
+    <p class="hint">Os avisos funcionam com o app aberto. No iPhone, instale o app na tela inicial antes de ativar. Com o app totalmente fechado, é preciso um servidor de push (veja o README).</p></div>
    <div class="fld"><span class="l">Nuvem e conta</span>
     ${(()=>{const a=tk();if(a)return`<div class="row"><span class="pill">${esc(PROV[a.p])}${a.email?" · "+esc(a.email):""}</span></div><span id="syncState">${esc(syncLabel())}</span><div class="row"><button class="btn" id="c-sync">Sincronizar agora</button><button class="btn danger" id="c-out">Desconectar</button></div>`;
      return`<p class="hint" style="margin:0">Entre com a conta de uma nuvem para guardar seus dados e abri-los em qualquer aparelho. O app só acessa a própria pasta privada.</p><span id="syncState">${esc(syncLabel())}</span>`+
       (isNative?`<p class="hint" style="margin:0">No app Android, o login na nuvem ainda não está disponível. Use o backup em arquivo abaixo. A versão web já sincroniza.</p>`:Object.keys(PROV).map(p=>`<button class="btn" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}${cfgOf(p)?"":" (não configurado)"}</button>`).join(""))})()}</div>
    <div class="fld"><span class="l">Backup em arquivo</span><div class="row"><button class="btn" id="s-exp">Baixar backup</button><label class="btn" style="display:inline-grid;place-items:center;cursor:pointer">Restaurar<input type="file" id="s-imp" accept="application/json" class="sr"></label>${isNative?'<button class="btn" id="s-paste">Restaurar do texto copiado</button>':""}</div></div>
    ${S.examples?'<button class="btn" id="s-ex">Remover exemplos</button>':""}
+   <div class="fld" style="margin-top:16px"><span class="l">Sobre</span><p style="margin:0">Seu Assistente foi desenvolvido por <b>Jamerson Rafael</b>.</p>
+     <div class="row"><a class="btn link" href="https://github.com/Rafajames" target="_blank" rel="noopener">GitHub @Rafajames</a><a class="btn link" href="https://github.com/Rafajames/seu-assistente" target="_blank" rel="noopener">Código-fonte</a></div></div>
    <div class="row" style="margin-top:14px"><button class="btn pri" id="s-ok" style="flex:1">Pronto</button></div></div></div>`;
   const ok=()=>{el.innerHTML="";render()};
   $("#scrim").onclick=e=>{if(e.target.id==="scrim")ok()};$("#s-ok").onclick=ok;

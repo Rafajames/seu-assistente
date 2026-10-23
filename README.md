@@ -4,6 +4,8 @@ Gerenciador de tarefas e diário para Android, feito para lembretes que não dei
 
 O app é leve de propósito: só texto e voz, sem anexos, e os dados ficam no seu aparelho.
 
+**Use no navegador:** https://rafajames.github.io/seu-assistente/ (versão web com login na nuvem)
+
 <p align="center">
   <img src="docs/inicio.png" width="23%" alt="Tela Início com a tarefa em andamento e o resumo do dia">
   <img src="docs/listas.png" width="23%" alt="Tela Listas com prioridades e etiquetas">
@@ -120,18 +122,27 @@ O APK sai em `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Versão web (PWA)
 
-O mesmo `www/index.html` funciona no navegador do celular ou do computador e pode ser instalado na tela inicial, no Android e no iPhone. É nele que a nuvem funciona. Para usar:
+O mesmo `www/index.html` funciona no navegador do celular ou do computador e pode ser instalado na tela inicial, no Android e no iPhone. É nele que o login na nuvem funciona e sincroniza seus dados entre aparelhos.
 
-1. Publique a pasta `www/` em qualquer hospedagem com HTTPS (Netlify, Vercel, GitHub Pages).
-2. Crie um app de login em cada nuvem que quiser oferecer e cole os identificadores no bloco `const CFG=` do `index.html`. O provedor deixado em branco aparece desativado.
+**Site:** https://rafajames.github.io/seu-assistente/
 
-   | Nuvem | Onde cadastrar | O que informar | Identificador |
-   | --- | --- | --- | --- |
-   | Google Drive | console.cloud.google.com | API do Drive ativada, escopos `drive.appdata` e `userinfo.email`, origem JavaScript = endereço do app | ID do cliente |
-   | Dropbox | dropbox.com/developers/apps | Pasta própria do app, permissões `files.content.read`, `files.content.write`, `account_info.read`, URI de retorno = endereço completo do app | App key |
-   | OneDrive | portal.azure.com | Plataforma "Aplicativo de página única", permissões `Files.ReadWrite.AppFolder` e `User.Read`, URI de retorno = endereço completo do app | ID do aplicativo |
+### Publicar o site (GitHub Pages)
 
-Os dados ficam no arquivo `assistente.json`, na pasta privada do app. O app não enxerga os outros arquivos da pessoa. Em conflito entre aparelhos, vale a alteração mais recente. No iPhone, o login do Google é o mais confiável.
+1. No repositório, abra **Settings → Pages**.
+2. Em **Build and deployment → Source**, escolha **GitHub Actions**.
+3. Abra a aba **Actions** e rode o fluxo **Publicar site** (ou envie qualquer alteração em `www/`). A partir daí o site é atualizado sozinho a cada alteração em `www/`.
+
+### Ativar o login na nuvem
+
+Cada nuvem exige um cadastro único do app, que gera um identificador público. Cole o identificador no bloco `const CFG=` de `www/index.html`. O provedor deixado em branco aparece desativado.
+
+| Nuvem | Onde cadastrar | O que informar | Identificador |
+| --- | --- | --- | --- |
+| Google Drive | console.cloud.google.com | API do Drive ativada, escopos `drive.appdata` e `userinfo.email`, origem JavaScript autorizada `https://rafajames.github.io` | ID do cliente → `CFG.google.clientId` |
+| Dropbox | dropbox.com/developers/apps | Pasta própria do app, permissões `files.content.read`, `files.content.write` e `account_info.read`, URI de retorno `https://rafajames.github.io/seu-assistente/` | App key → `CFG.dropbox.appKey` |
+| OneDrive | portal.azure.com | Plataforma "Aplicativo de página única", permissões `Files.ReadWrite.AppFolder` e `User.Read`, URI de retorno `https://rafajames.github.io/seu-assistente/` | ID do aplicativo → `CFG.microsoft.clientId` |
+
+Os dados ficam no arquivo `assistente.json`, na pasta privada do app. O app não enxerga os outros arquivos da pessoa. Em conflito entre aparelhos, vale a alteração mais recente. Enquanto o app do Google estiver em modo "Teste", só entram os e-mails cadastrados no console. No iPhone, o login do Google é o mais confiável.
 
 Avisos com o app totalmente fechado, na versão web, exigem um servidor de Web Push. Só o APK agenda avisos pelo sistema.
 
@@ -142,6 +153,14 @@ Avisos com o app totalmente fechado, na versão web, exigem um servidor de Web P
 - Modo foco com bloqueio real.
 - Widget na tela inicial e atalho para criar tarefa rápido.
 - Aviso por localização com o app fechado.
+
+## Sobre o desenvolvedor
+
+Desenvolvido por **Jamerson Rafael**.
+
+- GitHub: [@Rafajames](https://github.com/Rafajames)
+- Código-fonte: [Rafajames/seu-assistente](https://github.com/Rafajames/seu-assistente)
+- Encontrou um problema ou tem uma ideia? Abra uma [issue](https://github.com/Rafajames/seu-assistente/issues).
 
 ## Licença
 
