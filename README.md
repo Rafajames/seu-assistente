@@ -29,6 +29,14 @@ O app é leve de propósito: só texto e voz, sem anexos, e os dados ficam no se
 
 As versões novas instalam por cima da anterior e mantêm seus dados, porque todas usam a mesma assinatura.
 
+## Atualizações
+
+O app avisa quando existe versão nova e pergunta se você quer atualizar. Ele confere ao abrir, a cada 30 minutos e quando você volta para ele. Também dá para conferir em **Ajustes → Sobre → Verificar atualizações**.
+
+- **Site:** aparece o aviso "Nova versão disponível". Ao tocar em **Atualizar agora**, a página recarrega com a versão nova e suas tarefas continuam lá.
+- **APK:** o app consulta a última Release do GitHub. Se houver versão mais nova, o aviso leva ao download do APK. O Android sempre pede a sua confirmação para instalar, então a atualização não pode ser totalmente silenciosa.
+- "Depois" esconde o aviso daquela versão por 24 horas.
+
 ## O que ele faz
 
 **Tarefas**

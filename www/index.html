@@ -938,10 +938,11 @@ function openSettings(){
    <div class="fld"><span class="l">Backup em arquivo</span><div class="row"><button class="btn" id="s-exp">Baixar backup</button><label class="btn" style="display:inline-grid;place-items:center;cursor:pointer">Restaurar<input type="file" id="s-imp" accept="application/json" class="sr"></label>${isNative?'<button class="btn" id="s-paste">Restaurar do texto copiado</button>':""}</div></div>
    ${S.examples?'<button class="btn" id="s-ex">Remover exemplos</button>':""}
    <div class="fld" style="margin-top:16px"><span class="l">Sobre</span><p style="margin:0">Seu Assistente foi desenvolvido por <b>Jamerson Rafael</b>.</p>
-     <div class="row"><a class="btn link" href="https://github.com/Rafajames" target="_blank" rel="noopener">GitHub @Rafajames</a><a class="btn link" href="https://github.com/Rafajames/seu-assistente" target="_blank" rel="noopener">Código-fonte</a></div></div>
+     <p class="hint" style="margin:0">Versão ${esc(versionLabel())}</p>
+     <div class="row"><a class="btn link" href="https://github.com/Rafajames" target="_blank" rel="noopener">GitHub @Rafajames</a><a class="btn link" href="https://github.com/Rafajames/seu-assistente" target="_blank" rel="noopener">Código-fonte</a><button class="btn" id="s-upd">Verificar atualizações</button></div></div>
    <div class="row" style="margin-top:14px"><button class="btn pri" id="s-ok" style="flex:1">Pronto</button></div></div></div>`;
   const ok=()=>{el.innerHTML="";render()};
-  $("#scrim").onclick=e=>{if(e.target.id==="scrim")ok()};$("#s-ok").onclick=ok;
+  $("#scrim").onclick=e=>{if(e.target.id==="scrim")ok()};$("#s-ok").onclick=ok;$("#s-upd").onclick=()=>checkUpdates(true);
   $("#s-th").onchange=e=>{s.theme=e.target.value;save();applyPrefs()};
   $("#s-name").onchange=e=>{s.name=e.target.value.trim();save();header()};
   [["big","s-big"],["hc","s-hc"],["calm","s-calm"]].forEach(([k,id])=>$("#"+id).onchange=e=>{s[k]=e.target.checked;save();applyPrefs()});
@@ -1007,6 +1008,35 @@ if(!S.badgesSeen){S.badgesSeen=badges().filter(b=>b.on).map(b=>b.n);S.lvSeen=lev
 applyPrefs();render();tick();setInterval(tick,15000);setInterval(()=>{if(!document.hidden&&!F)header()},60000);
 if(!isNative&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(r=>{swReg=r}).catch(()=>{});
 handleRedirect().then(()=>{if(tk())pull()});schedNative();
+/* ---------- atualizações ---------- */
+const APP_VERSION="__APPVER__",BUILD="__BUILD__";
+const stamped=v=>!/^__.*__$/.test(v);
+const versionLabel=()=>stamped(APP_VERSION)?APP_VERSION:stamped(BUILD)?"web "+BUILD:"desenvolvimento";
+const semver=t=>{const m=String(t).match(/(\d+)\.(\d+)\.(\d+)/);return m?[+m[1],+m[2],+m[3]]:null};
+const semverGt=(a,b)=>{const x=semver(a),y=semver(b);if(!x||!y)return false;for(let i=0;i<3;i++){if(x[i]!==y[i])return x[i]>y[i]}return false};
+function updDismissed(id){try{const d=JSON.parse(localStorage.getItem(KEY+":upd")||"null");return !!d&&d.id===id&&Date.now()-d.at<864e5}catch(e){return false}}
+function updLater(id){try{localStorage.setItem(KEY+":upd",JSON.stringify({id,at:Date.now()}))}catch(e){}}
+function showUpdate(id,title,msg,label,action,href){
+  if(document.getElementById("upd-"+id))return;
+  const el=document.createElement("div");el.className="alert";el.id="upd-"+id;el.setAttribute("role","status");
+  el.innerHTML=`<b>${esc(title)}</b><span>${esc(msg)}</span><div class="row">${href?`<a class="btnlink" href="${esc(href)}" target="_blank" rel="noopener" data-a="go">${esc(label)}</a>`:`<button data-a="go">${esc(label)}</button>`}<button data-a="later">Depois</button></div>`;
+  el.addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="later")updLater(id);if(a==="go"&&action)action();el.remove()});
+  $("#alerts").appendChild(el)}
+async function checkApkUpdate(manual){
+  try{const r=await fetch("https://api.github.com/repos/Rafajames/seu-assistente/releases/latest",{headers:{Accept:"application/vnd.github+json"}});if(!r.ok)throw 0;const j=await r.json();
+    if(stamped(APP_VERSION)&&semverGt(j.tag_name,APP_VERSION)){const a=(j.assets||[]).find(x=>/\.apk$/i.test(x.name));
+      if(manual||!updDismissed(j.tag_name))showUpdate(j.tag_name,`Nova versão ${j.tag_name}`,"Baixe e abra o arquivo para atualizar. Seus dados são mantidos.","Baixar atualização",null,a?a.browser_download_url:j.html_url);return true}
+    if(manual)toast("Você já está na versão mais recente.")}catch(e){if(manual)toast("Não foi possível verificar agora. Confira a conexão.")}
+  return false}
+async function checkWebUpdate(manual){
+  try{const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;const j=await r.json();
+    if(stamped(BUILD)&&j.build&&j.build!==BUILD){if(manual||!updDismissed(j.build))showUpdate(j.build,"Nova versão disponível","Atualize para usar as novidades. Suas tarefas são mantidas.","Atualizar agora",applyWebUpdate);return true}
+    if(manual)toast("Você já está na versão mais recente.")}catch(e){if(manual)toast("Não foi possível verificar agora.")}
+  return false}
+async function applyWebUpdate(){try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));const rg=await navigator.serviceWorker.getRegistration();if(rg)await rg.update()}catch(e){}location.reload()}
+function checkUpdates(manual){return isNative?checkApkUpdate(manual):checkWebUpdate(manual)}
+setTimeout(()=>checkUpdates(false),4000);setInterval(()=>{if(!document.hidden)checkUpdates(false)},30*60*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(()=>checkUpdates(false),1500)});
 </script>
 </body>
 </html>

@@ -35,6 +35,9 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Registrar a versão dentro do app
+        run: sed -i "s/__APPVER__/${{ steps.ver.outputs.tag }}/" www/index.html
+
       - name: Instalar dependências
         run: npm ci
 

@@ -32,6 +32,12 @@ jobs:
           enablement: true
         continue-on-error: true
 
+      - name: Registrar a versão do site
+        run: |
+          B="${GITHUB_SHA::7}"
+          sed -i "s/__BUILD__/$B/" www/index.html www/sw.js
+          echo "{\"build\":\"$B\"}" > www/version.json
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: www
