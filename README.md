@@ -29,6 +29,15 @@ O app é leve de propósito: só texto e voz, sem anexos, e os dados ficam no se
 
 As versões novas instalam por cima da anterior e mantêm seus dados, porque todas usam a mesma assinatura.
 
+## Entrada, PIN e biometria
+
+Na primeira vez que abre, o app mostra uma tela de entrada com as opções **Google Drive, Dropbox e OneDrive** (só no site) ou **PIN** de 4 a 6 números. Depois de entrar, o app lembra do login neste aparelho e abre direto.
+
+- Em **Ajustes → Segurança e entrada** dá para criar, trocar ou remover o PIN, ativar **digital ou rosto** (site no celular, quando o aparelho permite) e marcar **Pedir PIN ou biometria ao abrir o app**. Com isso ligado, o PIN também é pedido ao voltar para o app depois de 2 minutos fora.
+- O PIN e a biometria ficam só no aparelho e protegem contra quem pegar o celular. Depois de 5 erros seguidos, o app espera 30 segundos.
+- **Esqueci o PIN** apaga os dados locais para redefinir. Com a nuvem ativa, é só entrar de novo para recuperar.
+- No APK a biometria ainda não está disponível. Use o PIN.
+
 ## Atualizações
 
 O app avisa quando existe versão nova e pergunta se você quer atualizar. Ele confere ao abrir, a cada 30 minutos e quando você volta para ele. Também dá para conferir em **Ajustes → Sobre → Verificar atualizações**.

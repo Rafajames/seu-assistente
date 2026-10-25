@@ -237,6 +237,24 @@ nav.bottom .in{grid-template-columns:repeat(4,1fr)!important}
 .foot{margin:28px 0 8px;text-align:center;font-size:.78rem;color:var(--muted)}
 .foot a{color:var(--accent);font-weight:600;text-decoration:none}
 .btn.link{display:inline-grid;place-items:center;text-decoration:none;color:var(--fg)}
+/* ---------- tela de entrada ---------- */
+#gate{z-index:200;overflow:auto;justify-content:flex-start;padding-top:max(48px,env(safe-area-inset-top,0px))}
+#gate>*{margin-inline:auto;width:100%;max-width:380px}
+#gate .logo{width:72px;height:72px;border-radius:22px;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:2rem}
+#gate .fine{font-size:.82rem;opacity:.9;margin:0}
+#gate .stack{display:flex;flex-direction:column;gap:10px}
+.lock .btn.ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.55)}
+.lock .btn:disabled{opacity:.55}
+.dots{display:flex;gap:12px;justify-content:center;min-height:16px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.8)}
+.dots i.on{background:#fff}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pad .key{height:58px;border-radius:16px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff;font-size:1.4rem;font-weight:700}
+.pad .key.sm{font-size:1rem}
+.pad .key:active{background:rgba(255,255,255,.36)}
+@keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+#gate.bad .dots{animation:shk .35s}
+@media (prefers-reduced-motion:reduce){#gate.bad .dots{animation:none}}
 </style>
 </head>
 <body>
@@ -935,6 +953,7 @@ function openSettings(){
     ${(()=>{const a=tk();if(a)return`<div class="row"><span class="pill">${esc(PROV[a.p])}${a.email?" · "+esc(a.email):""}</span></div><span id="syncState">${esc(syncLabel())}</span><div class="row"><button class="btn" id="c-sync">Sincronizar agora</button><button class="btn danger" id="c-out">Desconectar</button></div>`;
      return`<p class="hint" style="margin:0">Entre com a conta de uma nuvem para guardar seus dados e abri-los em qualquer aparelho. O app só acessa a própria pasta privada.</p><span id="syncState">${esc(syncLabel())}</span>`+
       (isNative?`<p class="hint" style="margin:0">No app Android, o login na nuvem ainda não está disponível. Use o backup em arquivo abaixo. A versão web já sincroniza.</p>`:Object.keys(PROV).map(p=>`<button class="btn" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}${cfgOf(p)?"":" (não configurado)"}</button>`).join(""))})()}</div>
+   ${securityHTML()}
    <div class="fld"><span class="l">Backup em arquivo</span><div class="row"><button class="btn" id="s-exp">Baixar backup</button><label class="btn" style="display:inline-grid;place-items:center;cursor:pointer">Restaurar<input type="file" id="s-imp" accept="application/json" class="sr"></label>${isNative?'<button class="btn" id="s-paste">Restaurar do texto copiado</button>':""}</div></div>
    ${S.examples?'<button class="btn" id="s-ex">Remover exemplos</button>':""}
    <div class="fld" style="margin-top:16px"><span class="l">Sobre</span><p style="margin:0">Seu Assistente foi desenvolvido por <b>Jamerson Rafael</b>.</p>
@@ -942,7 +961,7 @@ function openSettings(){
      <div class="row"><a class="btn link" href="https://github.com/Rafajames" target="_blank" rel="noopener">GitHub @Rafajames</a><a class="btn link" href="https://github.com/Rafajames/seu-assistente" target="_blank" rel="noopener">Código-fonte</a><button class="btn" id="s-upd">Verificar atualizações</button></div></div>
    <div class="row" style="margin-top:14px"><button class="btn pri" id="s-ok" style="flex:1">Pronto</button></div></div></div>`;
   const ok=()=>{el.innerHTML="";render()};
-  $("#scrim").onclick=e=>{if(e.target.id==="scrim")ok()};$("#s-ok").onclick=ok;$("#s-upd").onclick=()=>checkUpdates(true);
+  $("#scrim").onclick=e=>{if(e.target.id==="scrim")ok()};$("#s-ok").onclick=ok;$("#s-upd").onclick=()=>checkUpdates(true);bindSecurity();
   $("#s-th").onchange=e=>{s.theme=e.target.value;save();applyPrefs()};
   $("#s-name").onchange=e=>{s.name=e.target.value.trim();save();header()};
   [["big","s-big"],["hc","s-hc"],["calm","s-calm"]].forEach(([k,id])=>$("#"+id).onchange=e=>{s[k]=e.target.checked;save();applyPrefs()});
@@ -1007,7 +1026,7 @@ window.addEventListener("beforeunload",e=>{if(F){e.preventDefault();e.returnValu
 if(!S.badgesSeen){S.badgesSeen=badges().filter(b=>b.on).map(b=>b.n);S.lvSeen=level(S.xp);S.streakSeen=S.streak}
 applyPrefs();render();tick();setInterval(tick,15000);setInterval(()=>{if(!document.hidden&&!F)header()},60000);
 if(!isNative&&"serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(r=>{swReg=r}).catch(()=>{});
-handleRedirect().then(()=>{if(tk())pull()});schedNative();
+handleRedirect().then(()=>{if(tk())pull();if(redirecting){tk()?gateEnter():gateInit()}});schedNative();
 /* ---------- atualizações ---------- */
 const APP_VERSION="__APPVER__",BUILD="__BUILD__";
 const stamped=v=>!/^__.*__$/.test(v);
@@ -1037,6 +1056,107 @@ async function applyWebUpdate(){try{const ks=await caches.keys();await Promise.a
 function checkUpdates(manual){return isNative?checkApkUpdate(manual):checkWebUpdate(manual)}
 setTimeout(()=>checkUpdates(false),4000);setInterval(()=>{if(!document.hidden)checkUpdates(false)},30*60*1000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(()=>checkUpdates(false),1500)});
+
+/* ---------- tela de entrada: login na nuvem, PIN e biometria ---------- */
+const GK=KEY+":gate";
+const G=(()=>{try{return JSON.parse(localStorage.getItem(GK))||{}}catch(e){return{}}})();
+const gsave=()=>{try{localStorage.setItem(GK,JSON.stringify(G))}catch(e){}};
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const newSalt=()=>b64(crypto.getRandomValues(new Uint8Array(16)));
+async function hashPin(pin,salt){
+  if(window.crypto&&crypto.subtle){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveBits"]);
+    return b64(await crypto.subtle.deriveBits({name:"PBKDF2",salt:unb64(salt),iterations:100000,hash:"SHA-256"},k,256))}
+  let h=5381;for(const c of salt+pin)h=((h<<5)+h+c.charCodeAt(0))|0;return String(h)}
+async function bioAvailable(){try{return !isNative&&!!window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()}catch(e){return false}}
+async function bioEnroll(){
+  const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:"Seu Assistente"},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:"seu-assistente",displayName:"Seu Assistente"},
+    pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"discouraged"},timeout:60000}});
+  G.bio=b64(c.rawId);gsave()}
+async function bioCheck(){await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),
+  allowCredentials:[{type:"public-key",id:unb64(G.bio)}],userVerification:"required",timeout:60000}})}
+let gKeyOff=null,lastHide=0;
+function gateEl(){let g=$("#gate");
+  if(!g){g=document.createElement("div");g.id="gate";g.className="lock";g.setAttribute("role","dialog");g.setAttribute("aria-modal","true");g.setAttribute("aria-label","Entrar no Seu Assistente");document.body.appendChild(g)}
+  document.querySelectorAll("body > *:not(#gate):not(script)").forEach(n=>{n.inert=true});return g}
+function gateClose(){gKeyOff&&gKeyOff();gKeyOff=null;$("#gate")?.remove();document.querySelectorAll("body > *").forEach(n=>{n.inert=false})}
+function gateEnter(){G.entered=true;gsave();gateClose();render()}
+function gateWelcome(){
+  const g=gateEl();gKeyOff&&gKeyOff();gKeyOff=null;
+  const some=Object.keys(PROV).some(p=>!cfgOf(p));
+  g.innerHTML=`<div class="logo" aria-hidden="true">✓</div><h2>Seu Assistente</h2>
+   <p style="margin:0">Entre para abrir suas tarefas e seu diário.</p>
+   <div class="stack">${isNative?"":Object.keys(PROV).map(p=>`<button class="btn pri" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}</button>`).join("")}
+    ${G.pin?`<button class="btn ${isNative?"pri":"ghost"}" id="g-pin">Entrar com PIN</button>`:`<button class="btn ${isNative?"pri":"ghost"}" id="g-new">Criar um PIN neste aparelho</button>`}</div>
+   ${isNative?`<p class="fine">No app Android o login na nuvem ainda não está disponível. Use o PIN.</p>`:some?`<p class="fine">Botões apagados dependem do cadastro do app na nuvem, feito uma vez pelo desenvolvedor.</p>`:""}`;
+  g.querySelectorAll("[data-conn]").forEach(b=>b.onclick=async()=>{await connect(b.dataset.conn);if(tk())gateEnter()});
+  $("#g-new")&&($("#g-new").onclick=()=>gateSetPin(gateEnter,gateWelcome));
+  $("#g-pin")&&($("#g-pin").onclick=()=>gateUnlock(gateEnter,gateWelcome))}
+function pinPad({title,hint,len,submit,extra,bind}){
+  const g=gateEl();let v="";gKeyOff&&gKeyOff();
+  g.innerHTML=`<h2>${esc(title)}</h2><p id="gh" style="margin:0" role="status">${esc(hint||"")}</p><div class="dots" id="gd"></div>
+   <div class="pad">${"123456789".split("").map(n=>`<button class="key" data-k="${n}">${n}</button>`).join("")}<button class="key sm" data-k="x" aria-label="Apagar">⌫</button><button class="key" data-k="0">0</button><button class="key sm" data-k="ok" aria-label="Confirmar">OK</button></div>
+   <div class="stack">${extra||""}</div>`;
+  const paint=()=>{$("#gd").innerHTML=Array.from({length:Math.max(len||6,v.length)},(_,i)=>`<i class="${i<v.length?"on":""}"></i>`).join("")};
+  const go=async()=>{if(v.length<4)return;const pin=v;v="";paint();const err=await submit(pin);
+    if(err){$("#gh").textContent=err;g.classList.remove("bad");void g.offsetWidth;g.classList.add("bad")}};
+  const key=k=>{if(/^\d$/.test(k)){if(v.length<6){v+=k;paint();if(len&&v.length===len)go()}}else if(k==="x"){v=v.slice(0,-1);paint()}else if(k==="ok")go()};
+  g.querySelectorAll(".key").forEach(b=>b.onclick=()=>key(b.dataset.k));
+  const kd=e=>{if(/^\d$/.test(e.key))key(e.key);else if(e.key==="Backspace")key("x");else if(e.key==="Enter")key("ok")};
+  window.addEventListener("keydown",kd);gKeyOff=()=>window.removeEventListener("keydown",kd);
+  paint();bind&&bind(g)}
+function gateSetPin(done,back){
+  pinPad({title:"Crie seu PIN",hint:"De 4 a 6 números que só você saiba.",
+    extra:`<button class="btn ghost" id="g-bk">Voltar</button>`,bind:()=>{$("#g-bk").onclick=back},
+    submit:async p1=>{pinPad({title:"Repita o PIN",hint:"Digite o mesmo PIN para confirmar.",
+      extra:`<button class="btn ghost" id="g-bk">Recomeçar</button>`,bind:()=>{$("#g-bk").onclick=()=>gateSetPin(done,back)},
+      submit:async p2=>{if(p2!==p1)return"Os PINs não são iguais. Tente de novo.";
+        const salt=newSalt();G.pin={salt,hash:await hashPin(p1,salt),len:p1.length};G.fails=0;G.until=0;gsave();
+        if(await bioAvailable()&&!G.bio)gateOfferBio(done);else done()}})}})}
+function gateOfferBio(done){
+  const g=gateEl();gKeyOff&&gKeyOff();gKeyOff=null;
+  g.innerHTML=`<div class="logo" aria-hidden="true">☝</div><h2>Usar digital ou rosto?</h2><p style="margin:0">Entre mais rápido com a biometria do celular. O PIN continua valendo como reserva.</p>
+   <div class="stack"><button class="btn pri" id="g-yes">Ativar biometria</button><button class="btn ghost" id="g-no">Agora não</button><p class="fine" id="gh" role="status"></p></div>`;
+  $("#g-yes").onclick=async()=>{try{await bioEnroll();done()}catch(e){$("#gh").textContent="Não foi possível ativar. Você pode tentar depois em Ajustes."}};
+  $("#g-no").onclick=done}
+function gateUnlock(done,back,opts={}){
+  pinPad({title:opts.title||"Digite seu PIN",hint:opts.hint||"",len:G.pin.len,
+    extra:(G.bio&&!opts.noBio?`<button class="btn pri" id="g-bio">Usar digital ou rosto</button>`:"")+(back?`<button class="btn ghost" id="g-bk">${esc(opts.backLabel||"Voltar")}</button>`:"")+(opts.noForgot?"":`<button class="btn ghost" id="g-fg">Esqueci o PIN</button>`),
+    bind:()=>{$("#g-bk")&&($("#g-bk").onclick=back);
+      $("#g-bio")&&($("#g-bio").onclick=async()=>{try{await bioCheck();done()}catch(e){$("#gh").textContent="Biometria não reconhecida. Digite o PIN."}});
+      $("#g-fg")&&($("#g-fg").onclick=()=>{if(confirm("Para redefinir o PIN, os dados deste aparelho serão apagados. Se você usa a nuvem, entre de novo e eles voltam. Continuar?")){
+        try{localStorage.removeItem(KEY);localStorage.removeItem(GK);localStorage.removeItem(KEY+":auth")}catch(e){}location.reload()}})},
+    submit:async pin=>{const now=Date.now();if(G.until>now)return`Aguarde ${Math.ceil((G.until-now)/1000)} s para tentar de novo.`;
+      if(await hashPin(pin,G.pin.salt)===G.pin.hash){G.fails=0;G.until=0;gsave();done();return}
+      G.fails=(G.fails||0)+1;if(G.fails%5===0)G.until=Date.now()+30000*(G.fails/5);gsave();return"PIN incorreto."}})}
+function gateInit(){
+  if(G.entered||tk()){if(G.pin&&G.every)gateUnlock(gateClose,null)}
+  else gateWelcome()}
+document.addEventListener("visibilitychange",()=>{if(document.hidden){lastHide=Date.now();return}
+  if(G.pin&&G.every&&lastHide&&Date.now()-lastHide>12e4&&!$("#gate")&&!F)gateUnlock(gateClose,null)});
+function securityHTML(){
+  return`<div class="fld"><span class="l">Segurança e entrada</span>
+   <div class="row"><span class="pill ${G.pin?"":"plain"}">${G.pin?"PIN ativo":"Sem PIN"}</span>${G.bio?'<span class="pill">Biometria ativa</span>':""}</div>
+   ${G.pin?`<label class="sw"><input type="checkbox" id="g-every" ${G.every?"checked":""}>Pedir PIN ou biometria ao abrir o app</label>
+    <div class="row"><button class="btn" id="g-chg">Trocar PIN</button><button class="btn" id="g-rm">Remover PIN</button><button class="btn" id="g-bioset" hidden></button></div>`
+    :`<button class="btn" id="g-mk">Criar PIN</button>`}
+   <button class="btn danger" id="g-out">Sair e voltar à tela de login</button>
+   <p class="hint" style="margin:0">O login aparece só na primeira vez e fica lembrado neste aparelho. PIN e biometria ficam guardados só aqui e protegem o app de quem pegar o celular. ${isNative?"No app Android a biometria ainda não está disponível.":""}</p></div>`}
+function bindSecurity(){
+  const back=()=>{gateClose();openSettings()};
+  $("#g-mk")&&($("#g-mk").onclick=()=>gateSetPin(back,back));
+  $("#g-every")&&($("#g-every").onchange=e=>{G.every=e.target.checked;gsave()});
+  const verify=then=>gateUnlock(then,back,{title:"Confirme seu PIN",backLabel:"Cancelar",noForgot:true,noBio:true});
+  $("#g-chg")&&($("#g-chg").onclick=()=>verify(()=>gateSetPin(back,back)));
+  $("#g-rm")&&($("#g-rm").onclick=()=>verify(()=>{delete G.pin;delete G.bio;G.every=false;gsave();back()}));
+  const bb=$("#g-bioset");
+  if(bb)bioAvailable().then(ok=>{if(!ok)return;bb.hidden=false;bb.textContent=G.bio?"Desativar biometria":"Ativar biometria";
+    bb.onclick=async()=>{if(G.bio){delete G.bio;gsave();openSettings();return}try{await bioEnroll();openSettings()}catch(e){toast("Não foi possível ativar a biometria.")}}});
+  $("#g-out")&&($("#g-out").onclick=()=>{if(!confirm("Sair? Você volta para a tela de login. Os dados continuam neste aparelho."))return;
+    setTk(null);cloud.state="local";G.entered=false;gsave();$("#scrim")?.remove();gateWelcome()})}
+const redirecting=(()=>{try{return new URLSearchParams(location.search).has("code")&&!!localStorage.getItem("assistente:pk")}catch(e){return false}})();
+if(!redirecting)gateInit();
 </script>
 </body>
 </html>
