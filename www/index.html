@@ -355,6 +355,7 @@ function adopt(remote){
 /* Preencha os identificadores abaixo (veja o README). Deixe "" para ocultar o provedor. */
 const CFG={google:{clientId:"471618031590-ei8rt2a7s3do3901f5kg0iblpig1uvcc.apps.googleusercontent.com"},dropbox:{appKey:""},microsoft:{clientId:""}};
 const PROV={google:"Google Drive",dropbox:"Dropbox",microsoft:"OneDrive"};
+const LOGINS=["google"];
 const REDIR=location.origin+location.pathname;
 const FILE="assistente.json";
 const MS_SCOPE="Files.ReadWrite.AppFolder offline_access User.Read";
@@ -734,7 +735,7 @@ function viewLists(){
   const chips=[["hoje","Hoje"],["semana","Semana"],["fazendo","Em andamento"],["rot","Rotinas"],["todas","Todas"],["sem","Sem data"],["feitas","Concluídas"]].map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${filter===k}">${l}${k==="semana"?"":" · "+f[k].length}</button>`).join("");
   const alltags=[...new Set(S.tasks.flatMap(t=>t.tags||[]))].sort();
   const tagRow=alltags.length?`<div class="chips" style="padding-block:0 4px" role="group" aria-label="Etiquetas"><button class="chip" data-tag="*" aria-pressed="${!tagF}">Todas etiquetas</button>${alltags.map(g=>`<button class="chip" data-tag="${esc(g)}" aria-pressed="${tagF===g}">#${esc(g)}</button>`).join("")}</div>`:"";
-  const ban=(typeof tk==="function"&&!(typeof isNative!=="undefined"&&isNative)&&!tk()&&!localStorage.getItem(KEY+":nobanner"))?`<div class="card" style="margin-top:14px"><b>Guarde seus dados na nuvem</b><p class="hint" style="margin:4px 0 10px">Entre com sua conta Google, Dropbox ou OneDrive para abrir suas tarefas em qualquer aparelho.</p><div class="row"><button class="btn pri" id="openCloud">Escolher nuvem</button><button class="btn" id="noBanner">Agora não</button></div></div>`:"";
+  const ban=(typeof tk==="function"&&!(typeof isNative!=="undefined"&&isNative)&&!tk()&&!localStorage.getItem(KEY+":nobanner"))?`<div class="card" style="margin-top:14px"><b>Guarde seus dados na nuvem</b><p class="hint" style="margin:4px 0 10px">Entre com sua conta Google para abrir suas tarefas em qualquer aparelho.</p><div class="row"><button class="btn pri" id="openCloud">Escolher nuvem</button><button class="btn" id="noBanner">Agora não</button></div></div>`:"";
   let body="";
   if(filter==="semana"){
     const base=new Date();base.setHours(0,0,0,0);
@@ -952,7 +953,7 @@ function openSettings(){
    <div class="fld"><span class="l">Nuvem e conta</span>
     ${(()=>{const a=tk();if(a)return`<div class="row"><span class="pill">${esc(PROV[a.p])}${a.email?" · "+esc(a.email):""}</span></div><span id="syncState">${esc(syncLabel())}</span><div class="row"><button class="btn" id="c-sync">Sincronizar agora</button><button class="btn danger" id="c-out">Desconectar</button></div>`;
      return`<p class="hint" style="margin:0">Entre com a conta de uma nuvem para guardar seus dados e abri-los em qualquer aparelho. O app só acessa a própria pasta privada.</p><span id="syncState">${esc(syncLabel())}</span>`+
-      (isNative?`<p class="hint" style="margin:0">No app Android, o login na nuvem ainda não está disponível. Use o backup em arquivo abaixo. A versão web já sincroniza.</p>`:Object.keys(PROV).map(p=>`<button class="btn" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}${cfgOf(p)?"":" (não configurado)"}</button>`).join(""))})()}</div>
+      (isNative?`<p class="hint" style="margin:0">No app Android, o login na nuvem ainda não está disponível. Use o backup em arquivo abaixo. A versão web já sincroniza.</p>`:LOGINS.map(p=>`<button class="btn" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}${cfgOf(p)?"":" (não configurado)"}</button>`).join(""))})()}</div>
    ${securityHTML()}
    <div class="fld"><span class="l">Backup em arquivo</span><div class="row"><button class="btn" id="s-exp">Baixar backup</button><label class="btn" style="display:inline-grid;place-items:center;cursor:pointer">Restaurar<input type="file" id="s-imp" accept="application/json" class="sr"></label>${isNative?'<button class="btn" id="s-paste">Restaurar do texto copiado</button>':""}</div></div>
    ${S.examples?'<button class="btn" id="s-ex">Remover exemplos</button>':""}
@@ -1084,10 +1085,10 @@ function gateClose(){gKeyOff&&gKeyOff();gKeyOff=null;$("#gate")?.remove();docume
 function gateEnter(){G.entered=true;gsave();gateClose();render()}
 function gateWelcome(){
   const g=gateEl();gKeyOff&&gKeyOff();gKeyOff=null;
-  const some=Object.keys(PROV).some(p=>!cfgOf(p));
+  const some=LOGINS.some(p=>!cfgOf(p));
   g.innerHTML=`<div class="logo" aria-hidden="true">✓</div><h2>Seu Assistente</h2>
    <p style="margin:0">Entre para abrir suas tarefas e seu diário.</p>
-   <div class="stack">${isNative?"":Object.keys(PROV).map(p=>`<button class="btn pri" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}</button>`).join("")}
+   <div class="stack">${isNative?"":LOGINS.map(p=>`<button class="btn pri" data-conn="${p}" ${cfgOf(p)?"":"disabled"}>Entrar com ${PROV[p]}</button>`).join("")}
     ${G.pin?`<button class="btn ${isNative?"pri":"ghost"}" id="g-pin">Entrar com PIN</button>`:`<button class="btn ${isNative?"pri":"ghost"}" id="g-new">Criar um PIN neste aparelho</button>`}</div>
    ${isNative?`<p class="fine">No app Android o login na nuvem ainda não está disponível. Use o PIN.</p>`:some?`<p class="fine">Botões apagados dependem do cadastro do app na nuvem, feito uma vez pelo desenvolvedor.</p>`:""}`;
   g.querySelectorAll("[data-conn]").forEach(b=>b.onclick=async()=>{await connect(b.dataset.conn);if(tk())gateEnter()});

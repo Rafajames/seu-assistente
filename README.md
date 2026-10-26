@@ -31,7 +31,7 @@ As versões novas instalam por cima da anterior e mantêm seus dados, porque tod
 
 ## Entrada, PIN e biometria
 
-Na primeira vez que abre, o app mostra uma tela de entrada com as opções **Google Drive, Dropbox e OneDrive** (só no site) ou **PIN** de 4 a 6 números. Depois de entrar, o app lembra do login neste aparelho e abre direto.
+Na primeira vez que abre, o app mostra uma tela de entrada com a opção **Google Drive** (só no site) ou **PIN** de 4 a 6 números. Depois de entrar, o app lembra do login neste aparelho e abre direto.
 
 - Em **Ajustes → Segurança e entrada** dá para criar, trocar ou remover o PIN, ativar **digital ou rosto** (site no celular, quando o aparelho permite) e marcar **Pedir PIN ou biometria ao abrir o app**. Com isso ligado, o PIN também é pedido ao voltar para o app depois de 2 minutos fora.
 - O PIN e a biometria ficam só no aparelho e protegem contra quem pegar o celular. Depois de 5 erros seguidos, o app espera 30 segundos.
@@ -90,7 +90,7 @@ O app avisa quando existe versão nova e pergunta se você quer atualizar. Ele c
 
 ## Limitações conhecidas
 
-- **Login na nuvem:** não está disponível no APK. O Google bloqueia login dentro do navegador embutido do app, então a sincronização com Google Drive, Dropbox e OneDrive só funciona na versão web (veja abaixo). No APK, use o backup em arquivo, em Ajustes.
+- **Login na nuvem:** não está disponível no APK. O Google bloqueia login dentro do navegador embutido do app, então a sincronização com o Google Drive só funciona na versão web (veja abaixo). No APK, use o backup em arquivo, em Ajustes.
 - **Modo foco:** é uma tela cheia dentro do app. Ele não consegue travar o celular de verdade.
 - **Palavra de ativação** ("Assistente", como a Alexa) com a tela apagada: ainda não existe.
 - **Localização:** o aviso por lugar só funciona com o app aberto.
@@ -156,8 +156,6 @@ Cada nuvem exige um cadastro único do app, que gera um identificador público. 
 | Nuvem | Onde cadastrar | O que informar | Identificador |
 | --- | --- | --- | --- |
 | Google Drive | console.cloud.google.com | API do Drive ativada, escopos `drive.appdata` e `userinfo.email`, origem JavaScript autorizada `https://rafajames.github.io` | ID do cliente → `CFG.google.clientId` |
-| Dropbox | dropbox.com/developers/apps | Pasta própria do app, permissões `files.content.read`, `files.content.write` e `account_info.read`, URI de retorno `https://rafajames.github.io/seu-assistente/` | App key → `CFG.dropbox.appKey` |
-| OneDrive | portal.azure.com | Plataforma "Aplicativo de página única", permissões `Files.ReadWrite.AppFolder` e `User.Read`, URI de retorno `https://rafajames.github.io/seu-assistente/` | ID do aplicativo → `CFG.microsoft.clientId` |
 
 Os dados ficam no arquivo `assistente.json`, na pasta privada do app. O app não enxerga os outros arquivos da pessoa. Em conflito entre aparelhos, vale a alteração mais recente. Enquanto o app do Google estiver em modo "Teste", só entram os e-mails cadastrados no console. No iPhone, o login do Google é o mais confiável.
 
